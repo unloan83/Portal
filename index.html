@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Repository Portal</title>
+    <title>GitHub Workflow Output Portal</title>
     <style>
         * {
             margin: 0;
@@ -12,8 +12,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-                'Ubuntu', 'Cantarell', sans-serif;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
@@ -48,16 +47,26 @@
             margin-bottom: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             display: grid;
-            grid-template-columns: 1fr 1fr auto auto;
+            grid-template-columns: 1fr 1fr 1fr auto auto;
             gap: 15px;
             align-items: end;
         }
 
-        .controls input {
+        .controls label {
+            display: block;
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .controls input,
+        .controls select {
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 1em;
+            width: 100%;
         }
 
         .controls button {
@@ -69,6 +78,7 @@
             cursor: pointer;
             font-weight: bold;
             transition: background 0.3s;
+            height: fit-content;
         }
 
         .controls button:hover {
@@ -85,154 +95,129 @@
 
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 25px;
             margin-bottom: 40px;
         }
 
-        .repo-section {
+        .workflow-card {
             background: white;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
-        .repo-section:hover {
+        .workflow-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .repo-header {
+        .workflow-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
             border-bottom: 4px solid #ffc107;
         }
 
-        .repo-name {
-            font-size: 1.3em;
+        .workflow-repo {
+            font-size: 1.2em;
             font-weight: bold;
             margin-bottom: 8px;
         }
 
-        .repo-name a {
+        .workflow-repo a {
             color: white;
             text-decoration: none;
             transition: opacity 0.3s;
         }
 
-        .repo-name a:hover {
+        .workflow-repo a:hover {
             opacity: 0.8;
             text-decoration: underline;
         }
 
-        .repo-description {
-            font-size: 0.9em;
+        .workflow-name {
+            font-size: 0.95em;
             opacity: 0.9;
             margin-bottom: 10px;
-            line-height: 1.4;
         }
 
-        .repo-stats {
-            display: flex;
-            gap: 15px;
-            font-size: 0.85em;
-            opacity: 0.8;
-        }
-
-        .repo-content {
-            padding: 20px;
-        }
-
-        .output-section {
-            margin-bottom: 20px;
-        }
-
-        .output-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .output-title {
-            font-size: 1em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
-        }
-
-        .output-count {
-            background: #667eea;
-            color: white;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.85em;
-        }
-
-        .items-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .item {
-            padding: 10px;
-            background: #f8f9fa;
-            border-left: 3px solid #667eea;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
-
-        .item:hover {
-            background: #eff1f7;
-            border-left-color: #764ba2;
-        }
-
-        .item-title {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-            display: block;
-            margin-bottom: 4px;
-            transition: color 0.3s;
-        }
-
-        .item-title:hover {
-            color: #764ba2;
-            text-decoration: underline;
-        }
-
-        .item-meta {
-            font-size: 0.8em;
-            color: #999;
+        .workflow-status {
             display: flex;
             gap: 10px;
+            font-size: 0.9em;
             flex-wrap: wrap;
         }
 
-        .item-author {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85em;
         }
 
-        .label {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.7em;
+        .status-success {
+            background: rgba(81, 207, 102, 0.3);
             color: white;
+            border: 1px solid rgba(81, 207, 102, 0.5);
+        }
+
+        .status-failure {
+            background: rgba(255, 107, 107, 0.3);
+            color: white;
+            border: 1px solid rgba(255, 107, 107, 0.5);
+        }
+
+        .status-in-progress {
+            background: rgba(255, 193, 7, 0.3);
+            color: white;
+            border: 1px solid rgba(255, 193, 7, 0.5);
+        }
+
+        .workflow-time {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .workflow-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .output-container {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', monospace;
+            border-left: 3px solid #667eea;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .output-title {
+            font-weight: bold;
+            color: #4fc3f7;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 1px;
         }
 
         .empty-state {
             color: #999;
             font-style: italic;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
         }
 
@@ -289,13 +274,13 @@
 
         .config-items {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 10px;
         }
 
         .config-item {
             background: #f9f9f9;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
             border-left: 3px solid #667eea;
             display: flex;
@@ -303,12 +288,16 @@
             align-items: center;
         }
 
+        .config-item-info {
+            flex: 1;
+        }
+
         .config-item-name {
             font-weight: bold;
             color: #333;
         }
 
-        .config-item-purpose {
+        .config-item-workflow {
             font-size: 0.85em;
             color: #666;
         }
@@ -317,15 +306,26 @@
             background: #dc3545;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.85em;
             transition: background 0.3s;
+            margin-left: 10px;
         }
 
         .remove-btn:hover {
             background: #c82333;
+        }
+
+        .token-info {
+            background: #fffacd;
+            border: 1px solid #ffc107;
+            color: #333;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
         }
 
         @media (max-width: 768px) {
@@ -346,21 +346,33 @@
 <body>
     <div class="container">
         <header>
-            <h1>📊 GitHub Repository Portal</h1>
-            <p>Monitor multiple repositories in a single dashboard</p>
+            <h1>⚙️ GitHub Workflow Output Portal</h1>
+            <p>Monitor workflow execution outputs and logs in one dashboard</p>
         </header>
+
+        <div class="token-info">
+            💡 <strong>Tip:</strong> Create a GitHub Personal Access Token with 'repo' scope for private repositories: <a href="https://github.com/settings/tokens" target="_blank">Generate Token</a>
+        </div>
 
         <div class="controls">
             <div>
-                <label style="display: block; font-size: 0.85em; color: #666; margin-bottom: 5px;">Repository (owner/name)</label>
-                <input type="text" id="repoInput" placeholder="e.g., facebook/react">
+                <label>Repository (owner/name)</label>
+                <input type="text" id="repoInput" placeholder="e.g., unloan83/Portfolio">
             </div>
             <div>
-                <label style="display: block; font-size: 0.85em; color: #666; margin-bottom: 5px;">Purpose/Category</label>
-                <input type="text" id="purposeInput" placeholder="e.g., Frontend, Backend, etc.">
+                <label>Workflow File Name</label>
+                <input type="text" id="workflowInput" placeholder="e.g., stocks.yml or main.yaml">
             </div>
-            <button onclick="addRepository()">Add Repository</button>
-            <button class="refresh-btn" onclick="refreshData()">🔄 Refresh All</button>
+            <div>
+                <label>Category/Purpose</label>
+                <input type="text" id="purposeInput" placeholder="e.g., Stock Analysis, Reports, etc.">
+            </div>
+            <div>
+                <label>GitHub Token</label>
+                <input type="password" id="tokenInput" placeholder="github_pat_xxx (optional)">
+            </div>
+            <button onclick="addWorkflow()">Add Workflow</button>
+            <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
         </div>
 
         <div id="configList"></div>
@@ -369,94 +381,105 @@
     </div>
 
     <script>
-        let repositories = [];
+        let workflows = [];
+        let token = localStorage.getItem('workflow_token') || '';
 
-        // Load repositories from localStorage
-        function loadRepositories() {
-            const saved = localStorage.getItem('portal_repos');
+        // Load workflows from localStorage
+        function loadWorkflows() {
+            const saved = localStorage.getItem('workflow_configs');
             if (saved) {
-                repositories = JSON.parse(saved);
+                workflows = JSON.parse(saved);
                 displayConfigList();
-                loadAllData();
+                loadAllWorkflows();
             }
         }
 
-        // Save repositories to localStorage
-        function saveRepositories() {
-            localStorage.setItem('portal_repos', JSON.stringify(repositories));
+        // Save workflows to localStorage
+        function saveWorkflows() {
+            localStorage.setItem('workflow_configs', JSON.stringify(workflows));
         }
 
-        // Add repository
-        function addRepository() {
+        // Add workflow
+        function addWorkflow() {
             const repoInput = document.getElementById('repoInput');
+            const workflowInput = document.getElementById('workflowInput');
             const purposeInput = document.getElementById('purposeInput');
-            
+            const tokenInput = document.getElementById('tokenInput');
+
             const repo = repoInput.value.trim();
-            const purpose = purposeInput.value.trim() || 'Uncategorized';
+            const workflow = workflowInput.value.trim();
+            const purpose = purposeInput.value.trim() || 'Workflow Output';
+            const newToken = tokenInput.value.trim();
 
             if (!repo || !repo.includes('/')) {
                 showStatus('❌ Please enter repository in format: owner/name', 'error');
                 return;
             }
 
-            if (repositories.some(r => r.repo === repo)) {
-                showStatus('⚠️ Repository already added!', 'error');
+            if (!workflow) {
+                showStatus('❌ Please enter workflow file name (e.g., main.yml)', 'error');
                 return;
             }
 
-            repositories.push({
+            if (newToken) {
+                token = newToken;
+                localStorage.setItem('workflow_token', token);
+            }
+
+            if (workflows.some(w => w.repo === repo && w.workflow === workflow)) {
+                showStatus('⚠️ This workflow is already added!', 'error');
+                return;
+            }
+
+            workflows.push({
                 repo,
+                workflow,
                 purpose,
                 id: Date.now()
             });
 
-            saveRepositories();
+            saveWorkflows();
             repoInput.value = '';
+            workflowInput.value = '';
             purposeInput.value = '';
-            
+            tokenInput.value = '';
+
             displayConfigList();
-            loadAllData();
-            showStatus('✅ Repository added successfully!', 'success');
+            loadAllWorkflows();
+            showStatus('✅ Workflow added successfully!', 'success');
         }
 
-        // Remove repository
-        function removeRepository(id) {
-            repositories = repositories.filter(r => r.id !== id);
-            saveRepositories();
+        // Remove workflow
+        function removeWorkflow(id) {
+            workflows = workflows.filter(w => w.id !== id);
+            saveWorkflows();
             displayConfigList();
-            loadAllData();
-            showStatus('✅ Repository removed!', 'success');
+            loadAllWorkflows();
+            showStatus('✅ Workflow removed!', 'success');
         }
 
         // Display config list
         function displayConfigList() {
             const configList = document.getElementById('configList');
-            
-            if (repositories.length === 0) {
+
+            if (workflows.length === 0) {
                 configList.innerHTML = '';
                 return;
             }
 
-            const grouped = {};
-            repositories.forEach(r => {
-                if (!grouped[r.purpose]) grouped[r.purpose] = [];
-                grouped[r.purpose].push(r);
-            });
+            let html = '<div class="config-list"><h3>📋 Configured Workflows</h3><div class="config-items">';
 
-            let html = '<div class="config-list"><h3>📋 Configured Repositories</h3><div class="config-items">';
-            
-            Object.entries(grouped).forEach(([purpose, repos]) => {
-                repos.forEach(r => {
-                    html += `
-                        <div class="config-item">
-                            <div>
-                                <div class="config-item-name">${r.repo}</div>
-                                <div class="config-item-purpose">${purpose}</div>
-                            </div>
-                            <button class="remove-btn" onclick="removeRepository(${r.id})">×</button>
+            workflows.forEach(w => {
+                html += `
+                    <div class="config-item">
+                        <div class="config-item-info">
+                            <div class="config-item-name">${w.repo}</div>
+                            <div class="config-item-workflow">${w.workflow}</div>
+                            <div class="config-item-workflow" style="color: #999; font-size: 0.75em;">📂 ${w.purpose}</div>
                         </div>
-                    `;
-                });
+                        <button class="remove-btn" onclick="removeWorkflow(${w.id})">Remove</button>
+                    </div>
+                `;
             });
 
             html += '</div></div>';
@@ -469,59 +492,94 @@
             statusDiv.innerHTML = `<div class="${type}">${message}</div>`;
             setTimeout(() => {
                 statusDiv.innerHTML = '';
-            }, 3000);
+            }, 4000);
         }
 
-        // Fetch repository data
-        async function fetchRepoData(repo) {
+        // Fetch workflow runs
+        async function fetchWorkflowRuns(owner, repo, workflow) {
             try {
-                const [owner, name] = repo.split('/');
-                
-                // Fetch repo info
-                const repoRes = await fetch(`https://api.github.com/repos/${owner}/${name}`);
-                const repoData = await repoRes.json();
+                const headers = {
+                    'Accept': 'application/vnd.github.v3+json'
+                };
 
-                if (repoData.message === 'Not Found') {
+                if (token) {
+                    headers['Authorization'] = `token ${token}`;
+                }
+
+                // Get workflow ID first
+                const workflowsRes = await fetch(
+                    `https://api.github.com/repos/${owner}/${repo}/actions/workflows`,
+                    { headers }
+                );
+                const workflowsData = await workflowsRes.json();
+
+                if (!workflowsData.workflows) {
                     return null;
                 }
 
-                // Fetch open issues
-                const issuesRes = await fetch(
-                    `https://api.github.com/repos/${owner}/${name}/issues?state=open&per_page=8`
+                // Find matching workflow
+                const matchedWorkflow = workflowsData.workflows.find(w =>
+                    w.name === workflow || w.path.includes(workflow)
                 );
-                const issues = await issuesRes.json();
 
-                // Fetch open PRs
-                const prsRes = await fetch(
-                    `https://api.github.com/repos/${owner}/${name}/pulls?state=open&per_page=8`
-                );
-                const prs = await prsRes.json();
+                if (!matchedWorkflow) {
+                    console.log(`Workflow not found: ${workflow}`);
+                    return null;
+                }
 
-                // Fetch releases
-                const releasesRes = await fetch(
-                    `https://api.github.com/repos/${owner}/${name}/releases?per_page=5`
+                // Get latest runs for this workflow
+                const runsRes = await fetch(
+                    `https://api.github.com/repos/${owner}/${repo}/actions/workflows/${matchedWorkflow.id}/runs?per_page=1`,
+                    { headers }
                 );
-                const releases = await releasesRes.json();
+                const runsData = await runsRes.json();
+
+                if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) {
+                    return null;
+                }
+
+                const latestRun = runsData.workflow_runs[0];
+
+                // Get job details
+                const jobsRes = await fetch(
+                    `https://api.github.com/repos/${owner}/${repo}/actions/runs/${latestRun.id}/jobs`,
+                    { headers }
+                );
+                const jobsData = await jobsRes.json();
+
+                let logs = '';
+
+                // Get logs from each job
+                if (jobsData.jobs) {
+                    for (const job of jobsData.jobs) {
+                        const logsRes = await fetch(
+                            `https://api.github.com/repos/${owner}/${repo}/actions/jobs/${job.id}/logs`,
+                            { headers }
+                        );
+                        const jobLogs = await logsRes.text();
+                        logs += jobLogs;
+                    }
+                }
 
                 return {
-                    repo: repoData,
-                    issues: issues.filter(i => !i.pull_request),
-                    prs: prs,
-                    releases: releases || []
+                    workflow: matchedWorkflow,
+                    run: latestRun,
+                    logs: logs,
+                    jobs: jobsData.jobs || []
                 };
             } catch (error) {
-                console.error(`Error fetching ${repo}:`, error);
+                console.error(`Error fetching workflow for ${owner}/${repo}:`, error);
                 return null;
             }
         }
 
-        // Load all data
-        async function loadAllData() {
-            if (repositories.length === 0) {
+        // Load all workflows
+        async function loadAllWorkflows() {
+            if (workflows.length === 0) {
                 document.getElementById('dashboard').innerHTML = `
                     <div style="grid-column: 1/-1;">
                         <div class="loading">
-                            <p style="font-size: 1.2em;">👆 Add repositories above to get started</p>
+                            <p style="font-size: 1.2em;">👆 Add workflows above to get started</p>
                         </div>
                     </div>
                 `;
@@ -532,15 +590,16 @@
                 <div style="grid-column: 1/-1;">
                     <div class="loading">
                         <div class="spinner"></div>
-                        <p>Loading data from ${repositories.length} repository(ies)...</p>
+                        <p>Loading ${workflows.length} workflow(s)...</p>
                     </div>
                 </div>
             `;
 
             const allData = await Promise.all(
-                repositories.map(async (repoObj) => {
-                    const data = await fetchRepoData(repoObj.repo);
-                    return data ? { ...repoObj, ...data } : null;
+                workflows.map(async (workflowObj) => {
+                    const [owner, repo] = workflowObj.repo.split('/');
+                    const data = await fetchWorkflowRuns(owner, repo, workflowObj.workflow);
+                    return data ? { ...workflowObj, ...data } : null;
                 })
             );
 
@@ -552,124 +611,78 @@
             const dashboard = document.getElementById('dashboard');
 
             if (data.length === 0) {
-                dashboard.innerHTML = '<div style="grid-column: 1/-1;"><div class="error">❌ Error loading repository data. Check repo names and try again.</div></div>';
+                dashboard.innerHTML = '<div style="grid-column: 1/-1;"><div class="error">❌ Could not find any workflows. Check repository and workflow file names.</div></div>';
                 return;
             }
 
             dashboard.innerHTML = `
-                <div style="grid-column: 1/-1; display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px;">
-                    ${data.map(repoData => createRepoCard(repoData)).join('')}
+                <div style="grid-column: 1/-1; display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px;">
+                    ${data.map(workflowData => createWorkflowCard(workflowData)).join('')}
                 </div>
             `;
         }
 
-        // Create repo card
-        function createRepoCard(repoData) {
-            const { repo, issues, prs, releases, purpose } = repoData;
+        // Create workflow card
+        function createWorkflowCard(workflowData) {
+            const { repo, workflow, purpose, run, logs } = workflowData;
+            const [owner, repoName] = repo.split('/');
 
-            return `
-                <div class="repo-section">
-                    <div class="repo-header">
-                        <div class="repo-name">
-                            <a href="${repo.html_url}" target="_blank">📦 ${repo.full_name}</a>
-                        </div>
-                        <div class="repo-description">${repo.description || 'No description'}</div>
-                        <div class="repo-stats">
-                            <span>⭐ ${repo.stargazers_count.toLocaleString()}</span>
-                            <span>🔀 ${repo.forks_count.toLocaleString()}</span>
-                            <span>👁️ ${repo.watchers_count.toLocaleString()}</span>
-                            <span>🏷️ ${purpose}</span>
-                        </div>
-                    </div>
-                    <div class="repo-content">
-                        ${createOutputSection('📋 Issues', issues, 'issue')}
-                        ${createOutputSection('🔄 Pull Requests', prs, 'pr')}
-                        ${createOutputSection('🚀 Releases', releases, 'release')}
-                    </div>
-                </div>
-            `;
-        }
+            const statusClass = run.conclusion === 'success' ? 'status-success' :
+                run.conclusion === 'failure' ? 'status-failure' : 'status-in-progress';
 
-        // Create output section
-        function createOutputSection(title, items, type) {
-            if (items.length === 0) {
-                return `
-                    <div class="output-section">
-                        <div class="output-title">
-                            ${title}
-                            <span class="output-count">0</span>
-                        </div>
-                        <div class="empty-state">No ${title.toLowerCase()}</div>
-                    </div>
-                `;
+            const statusText = run.conclusion ? run.conclusion.toUpperCase() : 'IN PROGRESS';
+
+            const runDate = new Date(run.created_at).toLocaleString();
+            const runDuration = run.run_number ? `Run #${run.run_number}` : 'Latest';
+
+            // Clean up logs for display
+            let displayLogs = logs;
+            if (displayLogs.length > 5000) {
+                displayLogs = displayLogs.substring(displayLogs.length - 5000) + '\n... (truncated)';
             }
 
             return `
-                <div class="output-section">
-                    <div class="output-title">
-                        ${title}
-                        <span class="output-count">${items.length}</span>
+                <div class="workflow-card">
+                    <div class="workflow-header">
+                        <div class="workflow-repo">
+                            <a href="https://github.com/${repo}" target="_blank">📦 ${repo}</a>
+                        </div>
+                        <div class="workflow-name">Workflow: ${workflow}</div>
+                        <div class="workflow-name" style="font-size: 0.9em; opacity: 0.8;">📂 ${purpose}</div>
+                        <div class="workflow-status">
+                            <span class="status-badge ${statusClass}">🔄 ${statusText}</span>
+                            <span class="workflow-time">${runDate}</span>
+                            <span class="workflow-time">${runDuration}</span>
+                        </div>
                     </div>
-                    <ul class="items-list">
-                        ${items.map(item => createItemElement(item, type)).join('')}
-                    </ul>
+                    <div class="workflow-content">
+                        ${logs ? `
+                            <div class="output-title">📋 Execution Output:</div>
+                            <div class="output-container">${escapeHtml(displayLogs)}</div>
+                        ` : '<div class="empty-state">No output logs available</div>'}
+                    </div>
                 </div>
             `;
         }
 
-        // Create item element
-        function createItemElement(item, type) {
-            let title, url, author, date, labels = [];
-
-            if (type === 'issue' || type === 'pr') {
-                title = `#${item.number}: ${item.title}`;
-                url = item.html_url;
-                author = item.user.login;
-                date = new Date(item.created_at).toLocaleDateString();
-                if (item.labels) labels = item.labels;
-            } else if (type === 'release') {
-                title = item.tag_name;
-                url = item.html_url;
-                author = item.author.login;
-                date = new Date(item.published_at).toLocaleDateString();
-            }
-
-            const labelsHtml = labels.map(l => 
-                `<span class="label" style="background: #${l.color}; color: ${getTextColor(l.color)}">${l.name}</span>`
-            ).join('');
-
-            return `
-                <li class="item">
-                    <a href="${url}" target="_blank" class="item-title">${title}</a>
-                    <div class="item-meta">
-                        <span class="item-author">👤 ${author}</span>
-                        <span>📅 ${date}</span>
-                        ${labelsHtml}
-                    </div>
-                </li>
-            `;
-        }
-
-        // Get readable text color
-        function getTextColor(hexColor) {
-            const r = parseInt(hexColor.substr(0, 2), 16);
-            const g = parseInt(hexColor.substr(2, 2), 16);
-            const b = parseInt(hexColor.substr(4, 2), 16);
-            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-            return brightness > 128 ? '#000' : '#fff';
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // Refresh data
         function refreshData() {
-            if (repositories.length === 0) {
-                showStatus('⚠️ No repositories configured', 'error');
+            if (workflows.length === 0) {
+                showStatus('⚠️ No workflows configured', 'error');
                 return;
             }
-            loadAllData();
+            loadAllWorkflows();
         }
 
         // Initialize on page load
-        window.addEventListener('DOMContentLoaded', loadRepositories);
+        window.addEventListener('DOMContentLoaded', loadWorkflows);
     </script>
 </body>
 </html>
