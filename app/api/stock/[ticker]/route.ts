@@ -68,11 +68,13 @@ async function fetchFromFinnhubFallback(ticker: string) {
   };
 }
 
+// Next.js 15: Context params inside dynamic API segments are explicit Promises
 export async function GET(
   request: Request,
-  { params }: { params: { ticker: string } }
+  context: { params: Promise<{ ticker: string }> }
 ) {
-  const ticker = params.ticker;
+  // We MUST await the context parameters before accessing properties
+  const { ticker } = await context.params;
 
   if (!ticker) {
     return NextResponse.json({ error: 'Ticker required' }, { status: 400 });
